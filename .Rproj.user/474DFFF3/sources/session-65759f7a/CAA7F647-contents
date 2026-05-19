@@ -1,0 +1,339 @@
+###load packages
+
+# library(brms)
+# library(tidybayes)
+# library(bayesplot)
+# library(data.table)
+# library(shiny)
+# library(shinydashboard)
+# library(tidyverse)
+# library(tidyr) # I added this, I don't think we need it though.
+# library(plyr)
+# library(dplyr)
+# library(stringr)
+# library(plotly)
+# library(ggplot2)
+# library(bayesplot)
+# library(rstanarm)
+# library(HDInterval)
+# library(rio)
+
+# JS update this!
+# set this to the folder where all the objects are saved.
+setwd("/Users/setheaton/Documents/DAIVE/VM_Files")
+
+# import data
+value.summary <- readRDS("value.summary.jittered.rds")
+#value.summary <- readRDS("value.summary.rds")
+
+#
+# # add simulated implementation burdens
+#imp_burden <- expand.grid(A=c(0,4), B=c(0,2), C=c(0,2), D=c(0,1), E=c(0,1))
+#value.summary$impburden = rowSums(imp_burden)
+#value.summary$impburden = jitter(value.summary$impburden)
+#value.summary$impburden[1] <- 0
+#value.summary$impburden[32] <- 9.7
+value.summary$impburden.scale <- value.summary$impburden / 10
+#
+# saveRDS(value.summary, "value.summary.jittered.rds")
+
+#### HELPER CODE FOR DISTANCE METRICS
+
+# get dot product metric and euclidian distance metric
+get_distance_metrics <- function(df, outs, targets) {
+  df <- get_dots(df, outs, targets)
+  df <- get_euc(df, outs, targets)
+  return(df)
+}
+
+# get the dot product
+get_dots <- function(df, outs, targets) {
+  # initialize empty col
+  df$dots.raw <- NA
+
+  # get target
+  dot.target <- 0
+  for (i in 1:length(targets)) {
+    dot.target <- dot.target + targets[i]^2
+  }
+
+  for(i in 1:nrow(df)) {
+    vals <- c()
+    for(j in 1:length(outs)) {
+      vals <- append(vals, as.numeric(df[[i, outs[j]]]))
+    }
+    df[[i, "dots.raw"]] <- abs(calc_dot(vals, targets) - dot.target)
+  }
+  #df$dot.prod <- max(df$dots.raw) - df$dots.raw
+  df$dot.prod <- df$dots.raw
+  df <- select(df, -dots.raw)
+  return(df)
+}
+
+calc_dot <- function(vals, targets) {
+  sum <- 0
+  for (i in 1:length(targets)) {
+    sum <- sum + (vals[i]*targets[i])
+  }
+  return(sum)
+}
+
+# function to caluclate euclidian distance then reverse the order
+get_euc <- function(df, outs, targets) {
+  # initialize empty col
+  df$euc.raw <- NA
+
+  # for each row in df, calculate raw euclidian distance from target vector
+  for(i in 1:nrow(df)) {
+    vals <- c()
+    for(j in 1:length(outs)) {
+      vals <- append(vals, as.numeric(df[[i, outs[j]]]))
+    }
+    df[[i, "euc.raw"]] <- calc_distance(vals, targets)
+  }
+
+  df$euc.distance <- df$euc.raw
+  df <- select(df, -euc.raw)
+  return(df)
+}
+
+# helper func to calculate euclidian distance
+calc_distance <- function(vals, targets) {
+  sum <- 0
+  for(i in 1:length(vals)) {
+    sum <- sum + (vals[i] - targets[i])^2
+  }
+  return(sqrt(sum))
+}
+
+get_frontier <- function(df, val) {
+  #return(NA)
+  # set up a tmp df with the names, costs, and value for the dataframe
+  tmp <- data.frame(matrix(nrow = nrow(df), ncol=0))
+  tmp$names <- df$names
+  tmp$cost <- df$valfunction
+  tmp$val <- df[[val]]
+  #view(tmp)
+
+  # start recursive function to find set of candidates for efficiency frontier
+  candidate <- data.frame(matrix(nrow=0,ncol=ncol(tmp)))
+  subset <- get_candidates(tmp, candidate)
+  #view(subset)
+
+  # initialize frontier
+  frontier <- data.frame(matrix(nrow=0,ncol=ncol(tmp)))
+
+  # select minimum slope until most effective alternative is reached
+  subset <- get_slopes_cost(subset)
+  while(nrow(subset) > 1) {
+    # add the NaN row (returned by min) to the frontier and remove it
+    min <- min(subset$slopes)
+    idx <- match(min, subset$slopes)
+    frontier <- rbind(frontier, subset[idx, c(1:3)])
+    subset <- subset[-idx,]
+    #view(subset)
+
+    # find the actual minimum value and get index
+    min <- min(subset$slopes)
+    #print(min)
+    idx <- match(min, subset$slopes)
+    #print(idx)
+
+    # remove alternatives with higher slopes that are less effective than min
+    subset <- subset(subset, val >= subset[idx, "val"])
+
+    # calculate new slopes
+    subset <- get_slopes_slope(subset)
+  }
+  frontier <- rbind(frontier, subset[, c(1:3)])
+  return(frontier)
+}
+
+# identifies the set of candidates that are more effective than all other
+# interventions with lesser costs
+get_candidates <- function(tmp, candidate) {
+  # if one row left, terminate
+  if (nrow(tmp) <= 1){
+    candidate <- rbind(candidate, tmp)
+    return(candidate)
+  }
+
+  # otherwise, find most effective intervention left, add it to candidate set
+  # and run again on subset of all interventions that cost less than that
+  # intervention
+  max <- max(tmp$val)
+  idx <- match(max, tmp$val)
+  subset <- subset(tmp, cost < tmp[idx, "cost"])
+  candidate <- rbind(candidate, tmp[idx, ])
+  tmp <- subset
+  #view(subset)
+  return(get_candidates(tmp, candidate))
+}
+
+# get the initial slope calculations based on least cost
+get_slopes_cost <- function(tmp) {
+  min <- min(tmp$cost)
+  idx <- match(min, tmp$cost)
+  tmp$slopes <- get_slope(as.numeric(tmp[idx, "cost"]),
+                         as.numeric(tmp[idx, "val"]), tmp$cost, tmp$val)
+  #view(tmp)
+  return(tmp)
+}
+
+# get slope calculations based on last addition to frontier
+get_slopes_slope <- function(tmp) {
+  min <- min(tmp$slope)
+  idx <- match(min, tmp$slope)
+  tmp$slopes <- get_slope(as.numeric(tmp[idx, "cost"]),
+                          as.numeric(tmp[idx, "val"]), tmp$cost, tmp$val)
+  #view(tmp)
+  return(tmp)
+}
+
+# helper func to calculate slope
+get_slope <- function(rise1, run1, rise2, run2) {
+  rise <- (rise2 - rise1)
+  run <- (run2 - run1)
+  return(rise / run)
+}
+
+get_band_test <- function(df, frontier, val) {
+  tmp <- data.frame(matrix(nrow = nrow(df), ncol=0))
+  tmp$names <- df$names
+  tmp$cost <- df$valfunction
+  tmp$val <- df[[val]]
+
+  candidate <- data.frame(matrix(nrow=0,ncol=ncol(tmp)))
+  return(get_candidates(tmp, candidate))
+}
+
+# return a df with alternative in a "band" near the frontier
+get_band <- function(df, frontier, tolerance, val) {
+  # formate tmp df
+  tmp <- data.frame(matrix(nrow = nrow(df), ncol=0))
+  tmp$names <- df$names
+  tmp$cost <- df$valfunction
+  tmp$val <- df[[val]]
+
+  # initialize band
+  band <- data.frame(matrix(nrow=0,ncol=ncol(tmp)))
+
+  # for each row in frontier (except last)
+  for(i in 1:(nrow(frontier)-1)) {
+    # get x and y for row and the next row
+    x1=as.numeric(frontier[i, "val"])
+    y1=as.numeric(frontier[i, "cost"])
+    x2=as.numeric(frontier[i+1, "val"])
+    y2=as.numeric(frontier[i+1, "cost"])
+
+    # calculate line
+    line <- get_line(x1,y1,x2,y2)
+    # get subset of alternatives that fall above that line
+    compare <- subset(tmp, val >= x1 & val <= x2)
+
+    # see if they fall within set tolerance to the frontier
+    for (i in 1:nrow(compare)) {
+      y = get_y(line, as.numeric(compare[i, "val"]))
+      cost = as.numeric(compare[i, "cost"])
+      if(cost <= y + tolerance) {
+        band <- rbind(band, compare[i, ])
+      }
+    }
+  }
+  band <- unique(band)
+  return(band[order(band$val), ])
+}
+
+# get equation for line as slope + intercept
+get_line <- function(x1, y1, x2, y2) {
+  rise = (y2 - y1)
+  run = (x2 - x1)
+  slope = rise / run
+  intercept = y1 - slope*x1
+  return(c(slope, intercept))
+}
+
+# helper func to calculate y based on line and x value
+get_y <- function(line, x) {
+  return(line[1]*x + line[2])
+}
+
+#### HELPER CODE FOR VISUALIZING
+
+# draw frontier lines
+draw_frontier <- function(df, plot) {
+  for(i in 1:(nrow(df)-1)) {
+    plot <- plot + geom_segment(x=as.numeric(df[i, "val"]),
+                                y=as.numeric(df[i, "cost"]),
+                                xend=as.numeric(df[i+1, "val"]),
+                                yend=as.numeric(df[i+1, "cost"]))
+  }
+  return(plot)
+}
+
+# draw band lines with cost tolerance
+draw_band <- function(df, plot, tolerance) {
+  for(i in 1:(nrow(df)-1)) {
+    plot <- plot + geom_segment(x=as.numeric(df[i, "val"]) * xoffset,
+                                y=as.numeric(df[i, "cost"]) * yoffset,
+                                xend=as.numeric(df[i+1, "val"]) * xoffset,
+                                yend=as.numeric(df[i+1, "cost"]) * yoffset,
+                                linetype="dashed")
+  }
+  return(plot)
+}
+
+#### EDIT THE CODE HERE
+
+# create vector with outcome names
+outs <- c("out1", "out2", "impburden")
+
+# create vector with targets
+v1 = max(value.summary$out1) # target for out1
+v2 = max(value.summary$out2) # target for out2
+#v3 = min(value.summary$out3.scale) # target for out3
+vI = 2 # implementation target
+targets <- c(v1, v2, vI)
+
+value.summary <- get_distance_metrics(value.summary, outs, targets)
+
+weight_total = 100 + 100 + 0
+weight1 = 100/weight_total
+weight2 = 100/weight_total
+weight3 = 0/weight_total
+#Changed for 3
+weight4 = 0
+plot_upperbound = 800 # input$plot_upperbound
+
+value.summary$weighted_sum <- weight1*value.summary$out1.scale + weight2*value.summary$out2.scale #+ weight3*value.summary$out3.scale
+
+costs <- expand.grid(A=c(0, 280), B=c(0, 60), C=c(0,80), D=c(0,170), E=c(0,130))
+value.summary$totcost = rowSums(costs) + 30
+
+value.summary$valfunction <- 0.5*value.summary$totcost + 0.5*value.summary$impburden
+
+#ggplotly(plot, tooltip="names")
+
+#get_frontier(value.summary, "euc.distance.inverse")
+#get_frontier(value.summary, "dot_vm")
+frontier <- get_frontier(value.summary, "weighted_sum")
+frontier
+#band <- get_band(value.summary, frontier, 10, "weighted_sum")
+band <- get_band_test(value.summary, frontier, "weighted_sum")
+band # define using the slope of the line
+tmp <- value.summary[, c("names", "out1", "out2", "impburden", "dot.prod", "euc.distance")]
+band <- merge(band, tmp, by="names")
+band <- band[order(band$cost), ]
+band$onfrontier <- band$names %in% frontier$names
+band
+
+value.summary$onfrontier <- value.summary$names %in% frontier$names
+value.summary$onband <- value.summary$names %in% band$names
+
+plot <- ggplot(value.summary, aes(weighted_sum, valfunction, color=factor(names))) + geom_point()
+plot <- draw_frontier(frontier, plot)
+ggplotly(plot, tooltip="names")
+
+
+#plot <- draw_band(frontier, plot, .1)
+
