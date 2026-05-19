@@ -1,8 +1,7 @@
 # Takes a dataframe, the name of a column with the "value" (outcome) and the
 # name of a column with the "cost" values, data must contain a column "names"
-
 #' @export
-frontier <- function(data, val, cost) {
+frontier <- function(data, val, cost, extended = TRUE) {
   # set up a tmp df with the names, costs, and value for the dataframe
   df <- data.frame(matrix(nrow = nrow(data), ncol=0))
   df$names <- data$names
@@ -39,7 +38,14 @@ frontier <- function(data, val, cost) {
     subset <- get_slopes_slope(subset)
   }
   frontier <- rbind(frontier, subset[, c(1:3)])
-  colnames(frontier) <- c("Names", cost, val)
+  colnames(frontier) <- c("names", cost, val)
+
+  if (!extended) {
+    candidate <- data.frame(matrix(nrow=0,ncol=ncol(df)))
+    band <- get_candidates(df, candidate)
+    band$extended.dominant <- band$names %in% frontier$names
+    frontier <- band
+  }
   return(frontier)
 }
 
