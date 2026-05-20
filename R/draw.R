@@ -16,8 +16,16 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL) {
     frontier <- frontier[frontier$extended.dominant=="TRUE", ]
   }
 
-  plot <- ggplot2::ggplot(df, aes(outcome, cost, color=factor(in.frontier))) +
-    ggplot2::geom_point()
+  plot.colors <- c("FALSE" = "darkred", "TRUE" = "black")
+
+  plot <- ggplot2::ggplot(df, aes(outcome, cost,
+                                  color=as.factor(in.frontier))) +
+    ggplot2::geom_point() +
+    ggplot2:: scale_color_manual(values = plot.colors) +
+    ggplot2::geom_text(
+      data = df[df$in.frontier == TRUE,], aes(label = names), color = "black",
+      nudge_x = 0.002) +
+    ggplot2::theme(legend.position="none")
   plot <- draw_frontier(frontier, plot)
   return(plot)
 }
@@ -27,7 +35,8 @@ draw_frontier <- function(df, plot) {
     plot <- plot + ggplot2::geom_segment(x=as.numeric(df[i, 3]),
                                 y=as.numeric(df[i, 2]),
                                 xend=as.numeric(df[i+1, 3]),
-                                yend=as.numeric(df[i+1, 2]))
+                                yend=as.numeric(df[i+1, 2]),
+                                color = "black")
   }
   return(plot)
 }
