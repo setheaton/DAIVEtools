@@ -1,5 +1,4 @@
-# Takes a dataframe, the name of a column with the "value" (outcome) and the
-# name of a column with the "cost" values, data must contain a column "names"
+#' Calculates frontier of efficiency.
 #' @export
 frontier <- function(data, val, cost, extended = TRUE) {
   # set up a tmp df with the names, costs, and value for the dataframe

@@ -1,4 +1,4 @@
-# Takes data, a list of outcomes, and weights and calculates a weighted sum column
+#' Combine multiple outcomes using weighted sums
 #' @export
 weight_outcomes <- function(data, outcomes, weights) {
   sum <- 0

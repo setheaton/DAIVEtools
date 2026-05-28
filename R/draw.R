@@ -1,4 +1,4 @@
-# Takes a frontier and a plot as a inputs and draws the frontier over it
+#' Generates scatterplot of expected values with frontier of efficiency
 #' @export
 DAIVE_plot <- function(data, outcome, cost, frontier=NULL) {
   df <- data.frame(matrix(nrow = nrow(data), ncol=0))
