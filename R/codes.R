@@ -18,6 +18,7 @@ get_codes <- function(components) {
 # helper func to create the codes df
 make_codes_frame <- function(components) {
   # make list to hold parameter vectors, add vector for intercept
+  # DEBUG NOTE: THIS COLUMN IS NOT NUMERIC WHICH CAUSES AN ISSUE LATER
   params <- list(list(c(1)))
 
   # for each element of components, add an argument for the call to expand.grid
