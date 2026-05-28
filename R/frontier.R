@@ -74,7 +74,6 @@ get_slopes_cost <- function(tmp) {
   idx <- match(min, tmp$cost)
   tmp$slopes <- get_slope(as.numeric(tmp[idx, "cost"]),
                           as.numeric(tmp[idx, "val"]), tmp$cost, tmp$val)
-  #view(tmp)
   return(tmp)
 }
 
@@ -84,7 +83,6 @@ get_slopes_slope <- function(tmp) {
   idx <- match(min, tmp$slope)
   tmp$slopes <- get_slope(as.numeric(tmp[idx, "cost"]),
                           as.numeric(tmp[idx, "val"]), tmp$cost, tmp$val)
-  #view(tmp)
   return(tmp)
 }
 
