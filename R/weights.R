@@ -6,5 +6,6 @@ weight_outcomes <- function(data, outcomes, weights) {
     col <- which(colnames(data) == outcomes[i])
     sum <- sum + (data[col] * weights[i])
   }
-  return(sum)
+
+  return(sum[,1])
 }

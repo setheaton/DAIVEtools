@@ -1,6 +1,8 @@
 #' Generate effect codes for each intervention version using component labels
 #' @export
 get_codes <- function(components) {
+  # To-DO: Add safety guardrails (with an optional flag keyword)
+
   # first, create codes df
   codes <- make_codes_frame(components)
 
@@ -34,6 +36,9 @@ make_codes_frame <- function(components) {
 
   # call expand grid and return
   codes <- do.call(expand.grid, params)
+
+  # manually make codes cast the intercept column as numeric, return
+  codes$Intercept <- as.numeric(codes$Intercept)
   return(codes)
 }
 
