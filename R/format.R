@@ -59,19 +59,19 @@ get_alternatives_names <- function(value.summary) {
     if (sum(value.summary[i, 1:5]) == -5) {
       string = "All Off"
     } else {
-      if (codes[i, 1] == 1) {
+      if (value.summary[i, 1] == 1) {
         string <- paste0(string, "A")
       }
-      if (codes[i, 2] == 1) {
+      if (value.summary[i, 2] == 1) {
         string <- paste0(string, "B")
       }
-      if (codes[i, 3] == 1) {
+      if (value.summary[i, 3] == 1) {
         string <- paste0(string, "C")
       }
-      if (codes[i, 4] == 1) {
+      if (value.summary[i, 4] == 1) {
         string <- paste0(string, "D")
       }
-      if (codes[i, 5] == 1) {
+      if (value.summary[i, 5] == 1) {
         string <- paste0(string, "E")
       }
     }
