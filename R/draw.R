@@ -16,17 +16,52 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL) {
     frontier <- frontier[frontier$extended.dominant=="TRUE", ]
   }
 
-  plot.colors <- c("FALSE" = "darkred", "TRUE" = "black")
+  plot.colors <- c("FALSE" = "purple", "TRUE" = "black")
 
-  plot <- ggplot2::ggplot(df, aes(outcome, cost,
-                                  color=as.factor(in.frontier))) +
-    ggplot2::geom_point() +
-    ggplot2:: scale_color_manual(values = plot.colors) +
-    ggplot2::geom_text(
-      data = df[df$in.frontier == TRUE,], aes(label = names), color = "black",
-      nudge_x = 0.002) +
-    ggplot2::theme(legend.position="none")
+  plot <- ggplot2::ggplot(df, ggplot2::aes(
+    x = outcome,
+    y = cost,
+    color = as.factor(in.frontier),
+    text = paste0(            # custom hover text for plotly
+      "Name: ", names,
+      "<br>Outcome: ", round(outcome, 3),
+      "<br>Cost: ", round(cost, 3),
+      "<br>On frontier: ", in.frontier
+    )
+  )) +
+    ggplot2::geom_point(size = 2.5) +
+    ggplot2::scale_color_manual(values = plot.colors) +
+    ggplot2::theme_minimal(base_size = 13) +
+    ggplot2::theme(
+      legend.position = "none",
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.title = ggplot2::element_text(size = 12),
+      plot.margin = ggplot2::margin(10, 20, 10, 10)  # extra right margin for labels
+    ) +
+    ggplot2::labs(
+      x = "Outcome",
+      y = "Cost"
+    )
+
+  # draw the segments
   plot <- draw_frontier(frontier, plot)
+
+  # Convert to plotly, using custom hover text
+  plot <- plotly::ggplotly(plot, tooltip = "text")
+
+  # Create plotly labels for frontier points only
+  frontier.indices <- which(df$in.frontier == TRUE)
+
+  plot <- plotly::add_annotations(
+    plot,
+    x          = df$outcome[frontier.indices],
+    y          = df$cost[frontier.indices],
+    text       = df$names[frontier.indices],
+    xanchor    = "left",
+    xshift     = 8,               # nudge right of point
+    showarrow  = FALSE,
+    font       = list(size = 12, color = "black")
+  )
   return(plot)
 }
 
