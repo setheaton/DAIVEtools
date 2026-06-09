@@ -29,7 +29,7 @@ values_table <- function(draws, outs, components, codes) {
   for (i in 1:2^k) {
     for (j in 1:length(outs)){
       # get subset of outcomes for that alternative
-      subset <- match_df(outcomes, value.summary[i,1:length(components)])
+      subset <- plyr::match_df(outcomes, value.summary[i,1:k])
       value.summary[i, outs[j]] <- mean(subset[[outs[j]]])
       scale <- paste0(outs[j], ".scale")
       value.summary[i, scale] <- mean(subset[[scale]])
@@ -45,7 +45,8 @@ get_outcomes_asframe <- function(draws, codes) {
   # For a given draw index i, extract draw i from the posterior as a matrix and
   # left-multiply by codes to produce the outcome matrix for that draw
   out.list <- lapply(unique(draws$.draw), function(i) {
-    draw_matrix <- draws |> filter(.draw == i) |> select(4:length(draws)) |> as.matrix()
+    draw_matrix <- draws |> subset(.draw == i) |>
+      subset(select = c(4:length(draws))) |> as.matrix()
     as.matrix(codes) %*% t(draw_matrix)
   })
 
