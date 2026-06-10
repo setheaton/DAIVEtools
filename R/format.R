@@ -39,6 +39,23 @@ values_table <- function(draws, outs, components, codes) {
   return(value.summary)
 }
 
+#' Format tidybayes::spread_draws output for estimating alternative performance
+#' @export
+prepare_draws <- function(draws, codes, components) {
+  # format the outcome and scale it
+  outcome <- get_outcomes_asframe(draws, codes)
+  outcome <- scale_outcome(outcome, "out", "out")
+
+  # add names for different alternatives
+  outcome <- get_alternatives_names(outcome, components)
+
+  # get a list of intervention names and "flip" the table
+  names <- labels_draws(colnames(draws[4:length(draws)]))
+  draws <- flip_by_names(outcome, names, "out")
+  return(draws)
+}
+
+
 # helper function to get outcomes as a dataframe from draws
 get_outcomes_asframe <- function(draws, codes) {
 
@@ -56,13 +73,13 @@ get_outcomes_asframe <- function(draws, codes) {
                         B = rep(c(codes$B), 4000),
                         C = rep(c(codes$C), 4000),
                         D = rep(c(codes$D), 4000),
-                        #E = rep(c(codes$E), 4000),
+#                        E = rep(c(codes$E), 4000),
                         out = unlist(out.list))
   return(outcomes)
 }
 
-# helper function to add intervention names to codes frame for k = 5
-get_alternatives_names <- function(value.summary, components) {
+# helper function to add intervention names to codes frame
+get_alternatives_names <- function(frame, components) {
   # get number of components
   k <- length(components)
 
@@ -70,19 +87,19 @@ get_alternatives_names <- function(value.summary, components) {
   names.vec <- c()
   for (i in 1:2^k) {
     string <- ""
-    if (sum(value.summary[i, 1:k]) == -1*k) {
+    if (sum(frame[i, 1:k]) == -1*k) {
       string = "All Off"
     } else {
       for (j in 1:k){
-        if(value.summary[i, j] == 1) {
+        if(frame[i, j] == 1) {
           string <- paste0(string, components[j])
         }
       }
     }
     names.vec <- append(names.vec, string)
   }
-  value.summary$names <- names.vec
-  return(value.summary)
+  frame$names <- names.vec
+  return(frame)
 }
 
 # helper func to scale an outcome column
@@ -98,4 +115,28 @@ scale_outcome <- function(outcomes, colname, scaled_colname) {
   scaled_col[scaled_col > 1] <- 1
   outcomes[[scaled_colname]] <- scaled_col
   return(outcomes)
+}
+
+# flip draws by names
+flip_by_names <- function(df, vec, label) {
+  for(i in 1:length(vec)) {
+    add.vec <- df[[label]][df$names == vec[i]]
+    if (i == 1) {
+      result <- data.frame(add.vec)
+    } else {
+      result <- cbind(result, add.vec)
+    }
+  }
+  colnames(result) <- vec
+  return(result)
+}
+
+# get names? idk
+labels_draws <- function(names) {
+  results <- ifelse(
+    names == "b_Intercept",
+    "All Off",
+    gsub(":", "", sub("^b_", "", names))
+  )
+  return(results)
 }
