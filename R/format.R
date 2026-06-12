@@ -8,12 +8,12 @@ values_table <- function(draws, outs, components, codes) {
   k <- length(components)
 
   # set up outcomes frame
-  outcomes <- get_outcomes_asframe(draws[[1]], codes)
+  outcomes <- get_outcomes_asframe(draws[[1]], codes, k = k)
   colnames(outcomes) <- append(components, outs[1])
 
   if (length(draws) > 1) {
     for (i in 2:length(draws)) {
-      outcomes$tmp <- get_outcomes_asframe(draws[[i]], codes)$out
+      outcomes$tmp <- get_outcomes_asframe(draws[[i]], codes, k = k)$out
       colnames(outcomes) <- append(head(colnames(outcomes), -1), outs[i])
     }
   }
@@ -43,7 +43,7 @@ values_table <- function(draws, outs, components, codes) {
 #' @export
 prepare_draws <- function(draws, codes, components) {
   # format the outcome and scale it
-  outcome <- get_outcomes_asframe(draws, codes)
+  outcome <- get_outcomes_asframe(draws, codes, k = length(components))
   outcome <- scale_outcome(outcome, "out", "out")
 
   # add names for different alternatives
@@ -57,7 +57,7 @@ prepare_draws <- function(draws, codes, components) {
 
 
 # helper function to get outcomes as a dataframe from draws
-get_outcomes_asframe <- function(draws, codes) {
+get_outcomes_asframe <- function(draws, codes, k=4) {
 
   # For a given draw index i, extract draw i from the posterior as a matrix and
   # left-multiply by codes to produce the outcome matrix for that draw
@@ -69,12 +69,23 @@ get_outcomes_asframe <- function(draws, codes) {
 
   # add outcomes data to a frame with effects codes and return
   # To-DO: MAKE THIS RESPONSIVE TO VARIOUS NUMBERS OF COMPONENTS
+  # temporary solution
+  if(k == 4) {
   outcomes = data.frame(A = rep(c(codes$A), 4000),
                         B = rep(c(codes$B), 4000),
                         C = rep(c(codes$C), 4000),
                         D = rep(c(codes$D), 4000),
-#                        E = rep(c(codes$E), 4000),
                         out = unlist(out.list))
+  } else {
+    if(k == 4) {
+      outcomes = data.frame(A = rep(c(codes$A), 4000),
+                            B = rep(c(codes$B), 4000),
+                            C = rep(c(codes$C), 4000),
+                            D = rep(c(codes$D), 4000),
+                            E = rep(c(codes$E), 4000),
+                            out = unlist(out.list))
+    }
+  }
   return(outcomes)
 }
 
