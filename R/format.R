@@ -68,24 +68,13 @@ get_outcomes_asframe <- function(draws, codes, k=4) {
   })
 
   # add outcomes data to a frame with effects codes and return
-  # To-DO: MAKE THIS RESPONSIVE TO VARIOUS NUMBERS OF COMPONENTS
-  # temporary solution
-  if(k == 4) {
-  outcomes = data.frame(A = rep(c(codes$A), 4000),
-                        B = rep(c(codes$B), 4000),
-                        C = rep(c(codes$C), 4000),
-                        D = rep(c(codes$D), 4000),
-                        out = unlist(out.list))
-  } else {
-    if(k == 4) {
-      outcomes = data.frame(A = rep(c(codes$A), 4000),
-                            B = rep(c(codes$B), 4000),
-                            C = rep(c(codes$C), 4000),
-                            D = rep(c(codes$D), 4000),
-                            E = rep(c(codes$E), 4000),
-                            out = unlist(out.list))
-    }
+  params <- list()
+  for(i in 1:k) {
+    comp_name <- colnames(codes)[i + 1]
+    params[[comp_name]] <- rep(c(codes[[comp_name]]), 4000)
   }
+  params[["out"]] <- unlist(out.list)
+  outcomes <- do.call(data.frame, params)
   return(outcomes)
 }
 

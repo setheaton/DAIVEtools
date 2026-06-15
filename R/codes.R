@@ -31,7 +31,7 @@ make_codes_frame <- function(components) {
   # add intercept label to the beginning of component labels
   components <- append("Intercept", components)
 
-  # add component lables as name to the params list
+  # add component labels as name to the params list
   names(params) <- components
 
   # call expand grid and return
