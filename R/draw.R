@@ -1,6 +1,7 @@
 #' Generates scatterplot of expected values with frontier of efficiency
 #' @export
-DAIVE_plot <- function(data, outcome, cost, frontier=NULL) {
+DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
+                       weights=NULL) {
   df <- data.frame(matrix(nrow = nrow(data), ncol=0))
   df$names <- data$names
   df$cost <- data[[cost]]
@@ -16,6 +17,20 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL) {
     frontier <- frontier[frontier$extended.dominant=="TRUE", ]
   }
 
+  # Generate a label with the value function if outs and weights are included
+  if(is.null(outs) || is.null(weights)) {
+    xlab = outcome
+  } else {
+    xlab = ("Value = ")
+    for(i in 1:length(outs)) {
+      xlab <- paste(xlab, round(weights[i], digits=3), " * (",
+                          outs[i], ")", sep = "")
+      if(i < length(outs)) {
+        xlab <- paste0(xlab, " + ")
+      }
+    }
+  }
+
   plot.colors <- c("FALSE" = "purple", "TRUE" = "black")
 
   plot <- ggplot2::ggplot(df, ggplot2::aes(
@@ -26,7 +41,7 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL) {
       "Name: ", names,
       "<br>Outcome: ", round(outcome, 3),
       "<br>Cost: ", round(cost, 3),
-      "<br>On frontier: ", in.frontier
+      "<br>On Frontier: ", ifelse(in.frontier, "Yes", "No")
     )
   )) +
     ggplot2::geom_point(size = 2.5) +
@@ -36,10 +51,10 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL) {
       legend.position = "none",
       panel.grid.minor = ggplot2::element_blank(),
       axis.title = ggplot2::element_text(size = 12),
-      plot.margin = ggplot2::margin(10, 20, 10, 10)  # extra right margin for labels
+      plot.margin = ggplot2::margin(10, 20, 10, 10) # more right margin for labs
     ) +
     ggplot2::labs(
-      x = "Outcome",
+      x = xlab,
       y = "Cost"
     )
 
@@ -52,6 +67,7 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL) {
   # Create plotly labels for frontier points only
   frontier.indices <- which(df$in.frontier == TRUE)
 
+  # add hover labels
   plot <- plotly::add_annotations(
     plot,
     x          = df$outcome[frontier.indices],
