@@ -81,6 +81,7 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
   return(plot)
 }
 
+# internal function
 draw_frontier <- function(df, plot) {
   for(i in 1:(nrow(df)-1)) {
     plot <- plot + ggplot2::geom_segment(x=as.numeric(df[i, 3]),
