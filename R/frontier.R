@@ -1,6 +1,34 @@
-#' Calculates frontier of efficiency.
+#' Calculates a frontier of efficiency.
+#'
+#' @description
+#' This function selects a value efficient frontier by selecting non-dominated
+#' alternatives. Alternatives are considered dominated if another alternative
+#' has equivalent or greater expected value and lower cost.
+#' @param data A data frame containing expected value, cost, and component codes
+#'  for a set of alternatives.
+#' @param val A char value containing the name of the column with expected value
+#' for each alternative.
+#' @param cost A char value containing the name of the column with expected cost
+#' for each alternative.
+#' @param extended A boolean value indicating whether alternatives that are only
+#' extended dominated (but not simple dominated) should be included in the
+#' results.
+#' @return A dataframe with expected values and costs for the alternatives on
+#' the frontier of efficiency
 #' @export
+# @examples
+# frontier(value_summary, "weighted_sum", "dollar_cost")
 frontier <- function(data, val, cost, extended = TRUE) {
+  # check that the val and cost are columns in data
+  if(!check_colnames(data, val)) {
+    stop(paste0("No column called '", val, "' in the data."))
+    #return(NULL)
+  }
+  if(!check_colnames(data, cost)) {
+    stop(paste0("No column called '", cost, "' in the data."))
+    #return(NULL)
+  }
+
   # set up a tmp df with the names, costs, and value for the dataframe
   df <- data.frame(matrix(nrow = nrow(data), ncol=0))
   df$names <- data$names

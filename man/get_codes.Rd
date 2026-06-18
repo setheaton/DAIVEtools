@@ -6,6 +6,18 @@
 \usage{
 get_codes(components)
 }
+\arguments{
+\item{components}{A vector containing a char value with the names of each
+component.}
+}
+\value{
+A dataframe with effect codes.
+}
 \description{
-Generate effect codes for each intervention version using component labels
+This function generates effect codes using a list of component names. Effect
+codes will include an intercept, main effects, and interaction effects up to
+the k-way interaction for k components.
+}
+\examples{
+get_codes(c("A", "B", "C", "D"))
 }

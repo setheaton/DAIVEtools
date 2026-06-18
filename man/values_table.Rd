@@ -2,10 +2,10 @@
 % Please edit documentation in R/format.R
 \name{values_table}
 \alias{values_table}
-\title{Generates table of expected values}
+\title{Generates table of expected values (STILL IN DEVELOPMENT)}
 \usage{
-values_table()
+values_table(draws, outs, components, codes)
 }
 \description{
-Generates table of expected values
+Generates table of expected values (STILL IN DEVELOPMENT)
 }

@@ -4,7 +4,7 @@
 \alias{DAIVE_plot}
 \title{Generates scatterplot of expected values with frontier of efficiency}
 \usage{
-DAIVE_plot(data, outcome, cost, frontier = NULL)
+DAIVE_plot(data, outcome, cost, frontier = NULL, outs = NULL, weights = NULL)
 }
 \description{
 Generates scatterplot of expected values with frontier of efficiency

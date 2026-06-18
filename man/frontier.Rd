@@ -2,10 +2,30 @@
 % Please edit documentation in R/frontier.R
 \name{frontier}
 \alias{frontier}
-\title{Calculates frontier of efficiency.}
+\title{Calculates a frontier of efficiency.}
 \usage{
 frontier(data, val, cost, extended = TRUE)
 }
+\arguments{
+\item{data}{A data frame containing expected value, cost, and component codes
+for a set of alternatives.}
+
+\item{val}{A char value containing the name of the column with expected value
+for each alternative.}
+
+\item{cost}{A char value containing the name of the column with expected cost
+for each alternative.}
+
+\item{extended}{A boolean value indicating whether alternatives that are only
+extended dominated (but not simple dominated) should be included in the
+results.}
+}
+\value{
+A dataframe with expected values and costs for the alternatives on
+the frontier of efficiency
+}
 \description{
-Calculates frontier of efficiency.
+This function selects a value efficient frontier by selecting non-dominated
+alternatives. Alternatives are considered dominated if another alternative
+has equivalent or greater expected value and lower cost.
 }
