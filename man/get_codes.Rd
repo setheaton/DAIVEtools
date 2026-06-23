@@ -2,7 +2,7 @@
 % Please edit documentation in R/codes.R
 \name{get_codes}
 \alias{get_codes}
-\title{Generate effect codes for each intervention version using component labels}
+\title{Generates effect codes for each intervention version using component labels.}
 \usage{
 get_codes(components)
 }

@@ -1,4 +1,4 @@
-#' Generate effect codes for each intervention version using component labels
+#' Generates effect codes for each intervention version using component labels.
 #'
 #' @description
 #' This function generates effect codes using a list of component names. Effect

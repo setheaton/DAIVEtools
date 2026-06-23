@@ -1,12 +1,18 @@
 Package: DAIVEtools
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Supports Decision Analysis for Invervention Value Efficiency (DAIVE)
 Version: 0.1.0
+Date: 2026-06-18
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Seth", "Eaton",
+      email = "seth.eaton@nyu.edu",
       role = c("aut", "cre")
+    ),
+    person(
+      "Jillian", "Strayhorn",
+      email = "jillian.strayhorn@nyu.edu",
+      role = c("aut")
     )
   )
 Description: More about what it does (maybe more than one line).
@@ -16,4 +22,4 @@ Encoding: UTF-8
 LazyData: true
 RoxygenNote: 7.3.2
 Imports: 
-    ggplot2
+    ggplot2, plyr

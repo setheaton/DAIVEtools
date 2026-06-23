@@ -2,10 +2,12 @@
 % Please edit documentation in R/draw.R
 \name{DAIVE_plot}
 \alias{DAIVE_plot}
-\title{Generates scatterplot of expected values with frontier of efficiency}
+\title{Creates a scatterplot of expected alternative values with a frontier of
+efficiency.}
 \usage{
 DAIVE_plot(data, outcome, cost, frontier = NULL, outs = NULL, weights = NULL)
 }
 \description{
-Generates scatterplot of expected values with frontier of efficiency
+Creates a scatterplot of expected alternative values with a frontier of
+efficiency.
 }

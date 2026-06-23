@@ -2,10 +2,10 @@
 % Please edit documentation in R/weights.R
 \name{weight_outcomes}
 \alias{weight_outcomes}
-\title{Combines multiple outcomes using weighted sums}
+\title{Combines multiple outcomes using weighted sums.}
 \usage{
 weight_outcomes(data, outcomes, weights)
 }
 \description{
-Combines multiple outcomes using weighted sums
+Combines multiple outcomes using weighted sums.
 }

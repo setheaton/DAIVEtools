@@ -1,4 +1,5 @@
-#' Generates scatterplot of expected values with frontier of efficiency
+#' Creates a scatterplot of expected alternative values with a frontier of
+#' efficiency.
 #' @export
 DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
                        weights=NULL) {

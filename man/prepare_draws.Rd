@@ -2,10 +2,10 @@
 % Please edit documentation in R/format.R
 \name{prepare_draws}
 \alias{prepare_draws}
-\title{Format tidybayes::spread_draws output for estimating alternative performance}
+\title{Formats posterior draws to estimate alternative performance.}
 \usage{
 prepare_draws(draws, codes, components)
 }
 \description{
-Format tidybayes::spread_draws output for estimating alternative performance
+Formats posterior draws to estimate alternative performance.
 }
