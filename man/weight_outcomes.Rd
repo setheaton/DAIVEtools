@@ -4,8 +4,21 @@
 \alias{weight_outcomes}
 \title{Combines multiple outcomes using weighted sums.}
 \usage{
-weight_outcomes(data, outcomes, weights)
+weight_outcomes(data, outs, weights)
+}
+\arguments{
+\item{data}{A data frame containing data for multiple outcomes}
+
+\item{outs}{A vector of char values with column labels for each outcome}
+
+\item{weights}{A vector of numeric values with weights for each outcome}
+}
+\value{
+A vector containing the weighted sums of the specified columns for
+each row of data.
 }
 \description{
-Combines multiple outcomes using weighted sums.
+This function takes a data frame, a vector of outcome labels, and a set of
+numeric weights and generates a vector of combined outcome values using
+simple additive weighting.
 }

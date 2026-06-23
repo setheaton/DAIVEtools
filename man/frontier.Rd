@@ -21,7 +21,7 @@ extended dominated (but not simple dominated) should be included in the
 results.}
 }
 \value{
-A dataframe with expected values and costs for the alternatives on
+A data frame with expected values and costs for the alternatives on
 the frontier of efficiency
 }
 \description{

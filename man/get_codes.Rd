@@ -11,7 +11,7 @@ get_codes(components)
 component.}
 }
 \value{
-A dataframe with effect codes.
+A data frame with effect codes.
 }
 \description{
 This function generates effect codes using a list of component names. Effect

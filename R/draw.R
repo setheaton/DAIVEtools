@@ -1,5 +1,21 @@
 #' Creates a scatterplot of expected alternative values with a frontier of
 #' efficiency.
+#' @description
+#' This function takes a value summary data frame and generates a plotly object
+#' to visualize Decision Analysis for Intervention Value Efficiency. If no
+#' frontier is provided, the method identifies a frontier of efficiency using
+#' the outcome and cost values provided.
+#' @param data A data frame containing a summary of expected value for each
+#' alternative
+#' @param outcome A char value containing the column name of the outcome
+#' variable (or value function output for multiple weighted outcomes)
+#' @param cost A char value containing the colname of the cost variable
+#' @param frontier A data frame containing the values and costs associated with
+#' interventions on the frontier of efficiency
+#' @param outs,weights Vectors of char values and numeric values containing the
+#' outcome labels and weights respectively, used for generating an x axis label
+#' @return A plotly object containing a scatterplot with all alternatives, and a
+#' frontier of efficiency denoting the value efficient alternatives.
 #' @export
 DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
                        weights=NULL) {

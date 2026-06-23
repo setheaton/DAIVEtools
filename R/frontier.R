@@ -13,7 +13,7 @@
 #' @param extended A boolean value indicating whether alternatives that are only
 #' extended dominated (but not simple dominated) should be included in the
 #' results.
-#' @return A dataframe with expected values and costs for the alternatives on
+#' @return A data frame with expected values and costs for the alternatives on
 #' the frontier of efficiency
 #' @export
 # @examples

@@ -6,6 +6,20 @@
 \usage{
 prepare_draws(draws, codes, components)
 }
+\arguments{
+\item{draws}{A data frame containing posterior draws outputted from the
+tidybayes::spreadraws() method}
+
+\item{codes}{A data frame containing effects codes}
+
+\item{components}{A vector of char values with labels for each component}
+}
+\value{
+A data frame with posterior draw values organized into columns that
+correspond to an alternative.
+}
 \description{
-Formats posterior draws to estimate alternative performance.
+This function takes a data frame containing posterior draws and outputs a
+reformatted frame with a column of posterior values for each alternative,
+each labelled with the names of components included in that alternative.
 }

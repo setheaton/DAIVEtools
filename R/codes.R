@@ -6,7 +6,7 @@
 #' the k-way interaction for k components.
 #' @param components A vector containing a char value with the names of each
 #' component.
-#' @return A dataframe with effect codes.
+#' @return A data frame with effect codes.
 #' @export
 #' @examples
 #' get_codes(c("A", "B", "C", "D"))
