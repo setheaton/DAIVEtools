@@ -19,7 +19,7 @@ get_codes <- function(components) {
   # iterate through all possible lengths of combinations
   for(i in 2:length(components)) {
     # get combinations of components of that length
-    combinations <- combn(components, i)
+    combinations <- utils::combn(components, i)
     for(i in 1:ncol(combinations)) {
       codes <- multiply_columns(codes, combinations[,i])
     }

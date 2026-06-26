@@ -28,7 +28,7 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
     frontier <- frontier(df, "outcome", "cost")
   }
 
-  df$in.frontier <- df$names %in% frontier$names
+  df$in_frontier <- df$names %in% frontier$names
 
   if("extended.dominant" %in% colnames(frontier)) {
     frontier <- frontier[frontier$extended.dominant=="TRUE", ]
@@ -53,12 +53,12 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
   plot <- ggplot2::ggplot(df, ggplot2::aes(
     x = outcome,
     y = cost,
-    color = as.factor(in.frontier),
+    color = as.factor(in_frontier),
     text = paste0(            # custom hover text for plotly
       "Name: ", names,
       "<br>Outcome: ", round(outcome, 3),
       "<br>Cost: ", round(cost, 3),
-      "<br>On Frontier: ", ifelse(in.frontier, "Yes", "No")
+      "<br>On Frontier: ", ifelse(in_frontier, "Yes", "No")
     )
   )) +
     ggplot2::geom_point(size = 2.5) +
@@ -82,7 +82,7 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
   plot <- plotly::ggplotly(plot, tooltip = "text")
 
   # Create plotly labels for frontier points only
-  frontier.indices <- which(df$in.frontier == TRUE)
+  frontier.indices <- which(df$in_frontier == TRUE)
 
   # add hover labels
   plot <- plotly::add_annotations(

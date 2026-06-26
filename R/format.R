@@ -28,7 +28,7 @@ values_table <- function(draws, outs, components, codes) {
   if (length(draws) > 1) {
     for (i in 2:length(draws)) {
       outcomes$tmp <- get_outcomes_asframe(draws[[i]], codes, k = k)$out
-      colnames(outcomes) <- append(head(colnames(outcomes), -1), outs[i])
+      colnames(outcomes) <- append(utils::head(colnames(outcomes), -1), outs[i])
     }
   }
 
