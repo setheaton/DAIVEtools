@@ -33,14 +33,14 @@ library(DAIVEtools)
 ## combine draws dataframes into a list object
 draws <- list(gpaDraws, actDraws)
 
-## define a list of components and outcomes labels
+## define vectors of components and outcomes labels
 components <- c("A", "B", "C")
 outcomes <- c("GPA", "ACT")
 
 ## generate a frame with effects codes
 codes <- DAIVEtools::get_codes(components)
 
-## generate value summary table
+## generate a value summary table
 expectedValue <- DAIVEtools::values_table(draws, outcomes, components, codes)
 expectedValue
 #>    A  B  C   names        GPA GPA.scale      ACT ACT.scale
