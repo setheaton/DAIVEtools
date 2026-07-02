@@ -75,5 +75,6 @@ Values tables can also be used to easily visualize frontiers of efficiency:
 
 ```{r plot}
 DAIVEtools::DAIVE_plot(expectedValue, "valueFunc", "cost", 
-                       outs=c("Scaled GPA", "Scaled ACT"), weights=weights)
+                       outs=c("Scaled GPA", "Scaled ACT"), weights=weights, 
+                       static=TRUE)
 ```

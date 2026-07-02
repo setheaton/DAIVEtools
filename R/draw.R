@@ -14,11 +14,14 @@
 #' interventions on the frontier of efficiency
 #' @param outs,weights Vectors of char values and numeric values containing the
 #' outcome labels and weights respectively, used for generating an x axis label
-#' @return A plotly object containing a scatterplot with all alternatives, and a
+#' @param static A boolean indicating whether the function should return an
+#' interactive plotly object or a static ggplot object
+#' @return An interactive plotly object or static ggplot object (depending on
+#' 'static' parameter) containing a scatterplot with all alternatives, and a
 #' frontier of efficiency denoting the value efficient alternatives.
 #' @export
 DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
-                       weights=NULL) {
+                       weights=NULL, static=FALSE) {
   df <- data.frame(matrix(nrow = nrow(data), ncol=0))
   df$names <- data$names
   df$cost <- data[[cost]]
@@ -77,6 +80,11 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
 
   # draw the segments
   plot <- draw_frontier(frontier, plot)
+
+  # returns static ggplot output without hoverability functionality
+  if(static) {
+    return(plot)
+  }
 
   # Convert to plotly, using custom hover text
   plot <- plotly::ggplotly(plot, tooltip = "text")

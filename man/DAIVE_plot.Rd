@@ -5,7 +5,15 @@
 \title{Creates a scatterplot of expected alternative values with a frontier of
 efficiency.}
 \usage{
-DAIVE_plot(data, outcome, cost, frontier = NULL, outs = NULL, weights = NULL)
+DAIVE_plot(
+  data,
+  outcome,
+  cost,
+  frontier = NULL,
+  outs = NULL,
+  weights = NULL,
+  static = FALSE
+)
 }
 \arguments{
 \item{data}{A data frame containing a summary of expected value for each
@@ -21,9 +29,13 @@ interventions on the frontier of efficiency}
 
 \item{outs, weights}{Vectors of char values and numeric values containing the
 outcome labels and weights respectively, used for generating an x axis label}
+
+\item{static}{A boolean indicating whether the function should return an
+interactive plotly object or a static ggplot object}
 }
 \value{
-A plotly object containing a scatterplot with all alternatives, and a
+An interactive plotly object or static ggplot object (depending on
+'static' parameter) containing a scatterplot with all alternatives, and a
 frontier of efficiency denoting the value efficient alternatives.
 }
 \description{
