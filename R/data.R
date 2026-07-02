@@ -26,3 +26,6 @@
 #' }
 #' @source Synthetic data generated for demonstration purposes.
 "value_summary"
+
+"gpaDraws"
+"actDraws"

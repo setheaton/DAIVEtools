@@ -1,0 +1,79 @@
+---
+output: github_document
+always_allow_html: true
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  out.width = "100%"
+)
+```
+
+# DAIVEtools
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of DAIVEtools is to support Decision Analysis for Intervention Value Efficiency (DAIVE) by providing methods easily format data, visualize results, and identify frontiers of efficiency for factorial optimization trial data.
+
+## Installation
+
+You can install the development version of DAIVEtools from [GitHub](https://github.com/) with:
+
+``` r
+# install.packages("pak")
+pak::pak("setheaton/DAIVEtools")
+```
+
+## Example
+
+This is a basic example which shows how DAIVEtools can format posterior draws data into a table of expected value:
+
+```{r valuestable, warning=FALSE, message=FALSE}
+library(DAIVEtools)
+
+## combine draws dataframes into a list object
+draws <- list(gpaDraws, actDraws)
+
+## define a list of components and outcomes labels
+components <- c("A", "B", "C")
+outcomes <- c("GPA", "ACT")
+
+## generate a frame with effects codes
+codes <- DAIVEtools::get_codes(components)
+
+## generate value summary table
+expectedValue <- DAIVEtools::values_table(draws, outcomes, components, codes)
+expectedValue
+```
+
+Values tables can be used to easily combine outcomes with value functions and identify frontiers of efficiency:
+
+```{r frontier}
+## define weights for outcomes
+weights <- c(100/160, 60/160)
+
+## calculate a value function as a weighted sum
+expectedValue$valueFunc <- DAIVEtools::weight_outcomes(expectedValue,
+                                                    c("GPA.scale", "ACT.scale"), 
+                                                    weights)
+expectedValue
+
+## calculate alternative costs using component costs
+expectedValue$cost <- rowSums(expand.grid(A=c(0, 70), B=c(0, 60), C=c(0,20)))
+
+## identify a frontier
+DAIVEtools::frontier(expectedValue, "valueFunc", "cost")
+```
+
+Values tables can also be used to easily visualize frontiers of efficiency:
+
+```{r plot}
+DAIVEtools::DAIVE_plot(expectedValue, "valueFunc", "cost", 
+                       outs=c("Scaled GPA", "Scaled ACT"), weights=weights)
+```
