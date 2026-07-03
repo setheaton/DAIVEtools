@@ -8,7 +8,7 @@
 <!-- badges: end -->
 
 The goal of DAIVEtools is to support Decision Analysis for Intervention
-Value Efficiency (DAIVE) by providing methods easily format data,
+Value Efficiency (DAIVE) by providing R functions to easily format data,
 visualize results, and identify frontiers of efficiency for factorial
 optimization trial data.
 
