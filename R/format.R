@@ -11,10 +11,12 @@
 #' @param components A vector of char values with labels for each component
 #' @param codes A dataframe containing effect codes for component main and
 #' interaction effects
+#' @param separator An optional char variable to specify how components should
+#' be separated in alternative labels
 #' @return A dataframe containing expected value for each alternative on each
 #' outcome.
 #' @export
-values_table <- function(draws, outs, components, codes) {
+values_table <- function(draws, outs, components, codes, separator = "") {
   # take a vector of bayesian models as a parameter
   # take a vector of component column names
 
@@ -22,9 +24,8 @@ values_table <- function(draws, outs, components, codes) {
   k <- length(components)
 
   # set up outcomes frame
-  outcomes <- get_outcomes_asframe(draws[[1]], codes, k = k)
+  outcomes <- get_outcomes_asframe(draws[[1]], codes, k=k)
   colnames(outcomes) <- append(components, outs[1])
-
   if (length(draws) > 1) {
     for (i in 2:length(draws)) {
       outcomes$tmp <- get_outcomes_asframe(draws[[i]], codes, k = k)$out
@@ -37,7 +38,8 @@ values_table <- function(draws, outs, components, codes) {
   }
 
   value.summary <- codes[,2:(2 + k - 1)]
-  value.summary <- get_alternatives_names(value.summary, components)
+  value.summary <- get_alternatives_names(value.summary, components,
+                                          sep=separator)
 
   # iterate through alternatives
   for (i in 1:2^k) {
@@ -62,19 +64,21 @@ values_table <- function(draws, outs, components, codes) {
 #' tidybayes::spreadraws() method
 #' @param codes A data frame containing effects codes
 #' @param components A vector of char values with labels for each component
+#' @param separator An optional char variable to specify how components should
+#' be separated in alternative labels
 #' @return A data frame with posterior draw values organized into columns that
 #' correspond to an alternative.
 #' @export
-prepare_draws <- function(draws, codes, components) {
+prepare_draws <- function(draws, codes, components, separator="") {
   # format the outcome and scale it
   outcome <- get_outcomes_asframe(draws, codes, k = length(components))
   outcome <- scale_outcome(outcome, "out", "out")
 
   # add names for different alternatives
-  outcome <- get_alternatives_names(outcome, components)
+  outcome <- get_alternatives_names(outcome, components, sep=separator)
 
   # get a list of intervention names and "flip" the table
-  names <- labels_draws(colnames(draws[4:length(draws)]))
+  names <- labels_draws(colnames(draws[4:length(draws)]), ":")
   draws <- flip_by_names(outcome, names, "out")
   return(draws)
 }
@@ -103,7 +107,7 @@ get_outcomes_asframe <- function(draws, codes, k=4) {
 }
 
 # helper function to add intervention names to codes frame
-get_alternatives_names <- function(frame, components) {
+get_alternatives_names <- function(frame, components, sep) {
   # get number of components
   k <- length(components)
 
@@ -116,8 +120,11 @@ get_alternatives_names <- function(frame, components) {
     } else {
       for (j in 1:k){
         if(frame[i, j] == 1) {
-          string <- paste0(string, components[j])
+          string <- paste0(string, sep, components[j])
         }
+      }
+      if(sep != "") {
+        string <- gsub('^.', '', string)
       }
     }
     names.vec <- append(names.vec, string)
@@ -156,11 +163,11 @@ flip_by_names <- function(df, vec, label) {
 }
 
 # get names? idk
-labels_draws <- function(names) {
+labels_draws <- function(names, sep) {
   results <- ifelse(
     names == "b_Intercept",
     "All Off",
-    gsub(":", "", sub("^b_", "", names))
+    gsub(":", sep, sub("^b_", "", names))
   )
   return(results)
 }
