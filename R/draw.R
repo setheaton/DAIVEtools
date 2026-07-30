@@ -1,3 +1,11 @@
+#' @export
+frontier_plot <- function(g, frontier=NULL, outs=NULL, weights=NULL,
+                          static=FALSE) {
+  data <- g$ev_table
+  make_plot(data, "value_function", "cost", frontier=frontier, outs=g$outcomes,
+            weights=g$settings$weights, static=static)
+}
+
 #' Creates a scatterplot of expected alternative values with a frontier of
 #' efficiency.
 #' @description
@@ -19,8 +27,7 @@
 #' @return An interactive plotly object or static ggplot object (depending on
 #' 'static' parameter) containing a scatterplot with all alternatives, and a
 #' frontier of efficiency denoting the value efficient alternatives.
-#' @export
-DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
+make_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
                        weights=NULL, static=FALSE) {
   df <- data.frame(matrix(nrow = nrow(data), ncol=0))
   df$names <- data$names
@@ -103,7 +110,7 @@ DAIVE_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
     showarrow  = FALSE,
     font       = list(size = 12, color = "black")
   )
-  return(plot)
+  plot
 }
 
 # internal function
@@ -115,5 +122,5 @@ draw_frontier <- function(df, plot) {
                                 yend=as.numeric(df[i+1, 2]),
                                 color = "black")
   }
-  return(plot)
+  plot
 }

@@ -22,11 +22,9 @@ frontier <- function(data, val, cost, extended = TRUE) {
   # check that the val and cost are columns in data
   if(!check_colnames(data, val)) {
     stop(paste0("No column called '", val, "' in the data."))
-    #return(NULL)
   }
   if(!check_colnames(data, cost)) {
     stop(paste0("No column called '", cost, "' in the data."))
-    #return(NULL)
   }
 
   # set up a tmp df with the names, costs, and value for the dataframe
@@ -50,13 +48,10 @@ frontier <- function(data, val, cost, extended = TRUE) {
     idx <- match(min, subset$slopes)
     frontier <- rbind(frontier, subset[idx, c(1:3)])
     subset <- subset[-idx,]
-    #view(subset)
 
     # find the actual minimum value and get index
     min <- min(subset$slopes)
-    #print(min)
     idx <- match(min, subset$slopes)
-    #print(idx)
 
     # remove alternatives with higher slopes that are less effective than min
     subset <- subset(subset, val >= subset[idx, "val"])

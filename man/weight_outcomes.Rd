@@ -4,12 +4,10 @@
 \alias{weight_outcomes}
 \title{Combines multiple outcomes using weighted sums.}
 \usage{
-weight_outcomes(data, outs, weights)
+weight_outcomes(grid_object, weights)
 }
 \arguments{
-\item{data}{A data frame containing data for multiple outcomes}
-
-\item{outs}{A vector of char values with column labels for each outcome}
+\item{grid_object}{A daive_grid object}
 
 \item{weights}{A vector of numeric values with weights for each outcome}
 }
