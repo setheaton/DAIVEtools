@@ -2,8 +2,77 @@
 frontier_plot <- function(g, frontier=NULL, outs=NULL, weights=NULL,
                           static=FALSE) {
   data <- g$ev_table
-  make_plot(data, "value_function", "cost", frontier=frontier, outs=g$outcomes,
+  make_frontier_plot(data, "value_function", "cost", frontier=frontier, outs=g$outcomes,
             weights=g$settings$weights, static=static)
+}
+
+#' @export
+ev_plot <- function(g) {
+  df <- g$ev_table
+
+  frontier <- frontier(df, "value_function", "cost")
+
+  draws_unscaled <- g$ev_draws[c(1:length(g$outcomes))]
+
+  Map(f=get_ev_plot, draws_unscaled, g$outcomes, MoreArgs = list(g=g, frontier=frontier))
+}
+
+get_ev_plot <- function(draws, outcome, g, frontier) {
+  min <- min(g$ev_table[, outcome])
+  min <- g$ev_table$names[g$ev_table[, outcome] == min]
+
+  names <- append(min, frontier$names)
+  #return(names)
+
+  outcomes_frontier = draws[, which(colnames(draws) %in% names)]
+  outcomes_frontier = outcomes_frontier[, names]
+  post <- bayesplot::mcmc_intervals(outcomes_frontier, point_est="mean") #+
+  #  scale_x_continuous(limits=c(0,1))
+  post <- recolor_min(post)
+  plot_labels = append("Benchmark", frontier$names)
+  plot_labels <- setNames(plot_labels, names)
+  post <- post + ggplot2::scale_y_discrete(labels = plot_labels,
+                                           limits = rev(names))
+  post
+}
+
+# helper for ev_plots
+recolor_min <- function(plot) {
+  b <- ggplot2::ggplot_build(plot)
+
+  highlight_outer <- "#B2182B"   # thin line color
+  highlight_inner <- "#67001F"   # thick line color
+  highlight_point <- "#F4A582"   # point color
+
+  outer_df <- b$data[[2]]
+  inner_df <- b$data[[3]]
+  point_df <- b$data[[4]]
+
+  top_y <- max(outer_df$y)
+
+  top_outer <- outer_df[outer_df$y == top_y, ]
+  top_inner <- inner_df[inner_df$y == top_y, ]
+  top_point <- point_df[point_df$y == top_y, ]
+
+  output <- plot +
+    ggplot2::annotate("segment",
+             x = top_outer$x, xend = top_outer$xend,
+             y = top_outer$y, yend = top_outer$yend,
+             colour = highlight_outer, linewidth = top_outer$linewidth) +
+    ggplot2::annotate("segment",
+             x = top_inner$x, xend = top_inner$xend,
+             y = top_inner$y, yend = top_inner$yend,
+             colour = highlight_inner, linewidth = top_inner$linewidth) +
+    ggplot2::annotate("point",
+             x = top_point$x, y = top_point$y,
+             colour = highlight_inner,                 # this becomes the "border"
+             size = top_point$size - .5) +    # slightly bigger, sits behind
+    ggplot2::annotate("point",
+             x = top_point$x, y = top_point$y,
+             colour = highlight_point,
+             size = top_point$size - .6)
+
+  return(output)
 }
 
 #' Creates a scatterplot of expected alternative values with a frontier of
@@ -27,7 +96,7 @@ frontier_plot <- function(g, frontier=NULL, outs=NULL, weights=NULL,
 #' @return An interactive plotly object or static ggplot object (depending on
 #' 'static' parameter) containing a scatterplot with all alternatives, and a
 #' frontier of efficiency denoting the value efficient alternatives.
-make_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
+make_frontier_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
                        weights=NULL, static=FALSE) {
   df <- data.frame(matrix(nrow = nrow(data), ncol=0))
   df$names <- data$names

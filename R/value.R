@@ -27,8 +27,6 @@ get_ev <- function(g) {
   k <- settings$k
   separator <- settings$separator
 
-
-
   # get draws, codes, outcomes, and components from grid object
   draws <- g$data
   codes <- g$codes
@@ -79,9 +77,9 @@ get_ev <- function(g) {
   value_summary <- as.data.frame(value_summary)
   value_summary <- merge(value_summary, summary_df, by=components)
 
-  # add costs to value_summary
-  costs <- build_cost_grid(components, costs)
-  value_summary <- merge(value_summary, costs, by=components)
+  # # add costs to value_summary
+  costs_frame <- build_cost_grid(components, g$costs)
+  value_summary <- merge(value_summary, costs_frame, by=components)
 
   # update grid object with expected values table and new settings
   g$ev_table <- value_summary

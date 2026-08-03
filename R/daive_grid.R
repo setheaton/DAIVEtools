@@ -1,5 +1,5 @@
 # Constructor
-new_daive_grid <- function(data, outcomes, components, settings) {
+new_daive_grid <- function(data, outcomes, components, costs, settings) {
   # generate codes
   codes <- get_codes(components)
 
@@ -111,7 +111,7 @@ check_outcomes <- function(x, data) {
 
 #' @export
 # User-facing helper (what people actually call)
-daive_grid <- function(data, outcomes, components, separator="", weights=NA) {
+daive_grid <- function(data, outcomes, components, costs, separator="", weights=NA) {
   # validate components labels
   components <- as.character(components)
   check_components(components)
@@ -140,7 +140,7 @@ daive_grid <- function(data, outcomes, components, separator="", weights=NA) {
   )
 
   # final checks and return the object
-  g <- check_daive_grid(new_daive_grid(data, outcomes, components, settings))
+  g <- check_daive_grid(new_daive_grid(data, outcomes, components, costs, settings))
   get_ev(g)
 }
 
