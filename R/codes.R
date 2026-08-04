@@ -1,3 +1,5 @@
+##### DONE COMMENTING
+
 #' Generates effect codes for each intervention version using component labels.
 #'
 #' @description
@@ -11,8 +13,6 @@
 #' @examples
 #' get_codes(c("A", "B", "C", "D"))
 get_codes <- function(components) {
-  # To-DO: Add safety guardrails (with an optional flag keyword)
-
   # first, create codes df
   codes <- make_codes_frame(components)
 

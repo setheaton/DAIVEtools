@@ -1,20 +1,15 @@
+##### DONE COMMENTEING
+
 #' Generates a table of expected value for all possible combinations of
 #' components.
 #' @description
-#' This function creates a summary dataframe with estimated performance from
-#' each alternative from  a list of posterior draws (as output from
-#' tidybayes::spread_draws), outcome names, component names, and effects codes.
-#' The summary frame can be used to calculate a frontier and create DAIVE plots.
-#' @param draws A list object with posterior draws objects for each outcomes
-#' outputted from tidybayes::spreadraws
-#' @param outs A vector of char values with column labels for each outcome
-#' @param components A vector of char values with labels for each component
-#' @param codes A dataframe containing effect codes for component main and
-#' interaction effects
-#' @param separator An optional char variable to specify how components should
-#' be separated in alternative labels
-#' @return A dataframe containing expected value for each alternative on each
-#' outcome.
+#' This function "("get expected value") updates a daive_grid object to include
+#' a summary dataframe with estimated performance for each alternative and a
+#' predicted_outcomes dataframe formatted to estimate predicted alternative
+#' performance. The summary frame can be used to calculate a frontier and create
+#' DAIVE plots.
+#' @param g A daive_grid object
+#' @return A daive_grid object
 #' @import data.table
 #' @export
 get_ev <- function(g) {
@@ -35,6 +30,7 @@ get_ev <- function(g) {
 
   # set up outcomes frame
   if (length(draws) > 1 && inherits(draws, "list")) {
+    # if multiple sets of draws are included in the daive_grid object
     outcomes <- get_outcomes_asframe(draws[[1]], codes, k)
     colnames(outcomes) <- append(components, outs[1])
     for (i in 2:length(draws)) {
@@ -42,17 +38,24 @@ get_ev <- function(g) {
       colnames(outcomes) <- append(utils::head(colnames(outcomes), -1), outs[i])
     }
   } else {
+    # if only one set of draws is included in the daive_grid object
     outcomes <- get_outcomes_asframe(draws, codes, k)
     colnames(outcomes) <- append(components, outs)
   }
 
-  # check -> is this scaling the outcome draws or the main+ix effect draws?
-  # this is scaling the outcome draws
-  for (i in 1:length(outs)) {
-    outcomes <- scale_outcome(outcomes, outs[i], paste0(outs[i], ".scale"))
+  # if scale has the default value
+  if(identical(settings$scale, "0-1")) {
+    # pass NULL to helper function (to use default scale function)
+    outcomes <- scale_outcomes(outcomes, outs, ".scale", NULL)
+  } else if(identical(settings$scale, "z_score")) {
+    # pass custom z helper function if specified
+    outcomes <- scale_outcomes(outcomes, outs, ".scale", scale_z)
+  } else {
+    # otherwise pass custom scale argument
+    outcomes <- scale_outcomes(outcomes, outs, ".scale", settings$scale)
   }
 
-  # update the grid object with outcomes
+  # update the grid object with predicted_outcomes
   g$predicted_outcomes <- outcomes
 
   # initialize value_summary dataframe
@@ -77,7 +80,12 @@ get_ev <- function(g) {
   value_summary <- as.data.frame(value_summary)
   value_summary <- merge(value_summary, summary_df, by=components)
 
-  # # add costs to value_summary
+  # if costs equals default, set costs to one
+  if(identical(g$costs, "default")) {
+    g$costs <- rep(1, times=k)
+  }
+
+  # add costs to value_summary
   costs_frame <- build_cost_grid(components, g$costs)
   value_summary <- merge(value_summary, costs_frame, by=components)
 
@@ -97,25 +105,27 @@ get_ev <- function(g) {
   # save ev draws to g object
   g$ev_draws <- outcomes_draws
 
+  # update weights
+  g <- update_weights(g, settings$weights)
+
   # return updated grid object
   g
 }
 
 # helper function to get outcomes as a dataframe from draws
 get_outcomes_asframe <- function(draws, codes, k) {
-
   # Ensure draws are ordered by .draw so row order matches rep() below
   draws <- draws[order(draws$.draw), ]
 
   # One matrix: rows = draws, columns = parameters (drop .draw column)
   draw_matrix <- as.matrix(draws[, setdiff(names(draws), ".draw")])
 
-  # Single big matrix multiply replaces the entire lapply loop:
   # (n_codes x p) %*% (p x n_draws) = n_codes x n_draws
   outcome_matrix <- as.matrix(codes) %*% t(draw_matrix)
 
   n_draws <- nrow(draw_matrix)
 
+  # set effects codes to repeat for the length of the outcomes frame
   params <- list()
   for (i in 1:k) {
     comp_name <- colnames(codes)[i + 1]
@@ -123,6 +133,7 @@ get_outcomes_asframe <- function(draws, codes, k) {
   }
   params[["out"]] <- as.vector(outcome_matrix)
 
+  # return the outcomes vector and codes as a data frame
   do.call(data.frame, params)
 }
 
@@ -133,73 +144,117 @@ get_alternatives_names <- function(frame, components, sep) {
 
   # initialize names vector
   names.vec <- c()
+  # generate alternatives names for each of 2^k possible combinations
   for (i in 1:2^k) {
     string <- ""
     if (sum(frame[i, 1:k]) == -1*k) {
+      # manually set all off
       string = "All Off"
     } else {
+      # otherwise, combine component names with separator
       for (j in 1:k){
         if(frame[i, j] == 1) {
           string <- paste0(string, sep, components[j])
         }
       }
+      # strip the superfluous leading separator if the separator is not empty
       if(sep != "") {
         expression <- paste0("^.{", nchar(sep), "}")
         string <- gsub(expression, '', string)
       }
     }
+    # append the label to the vector
     names.vec <- append(names.vec, string)
   }
+  # add the vector to the frame
   frame$names <- names.vec
-  return(frame)
+  frame
 }
 
-# helper func to scale an outcome column
-scale_outcome <- function(outcomes, colname, scaled_colname) {
-  # get min and max of column
-  outcome_col <- outcomes[[colname]]
-  min <- min(outcome_col)
-  max <- max(outcome_col)
+# helper function
+scale_outcomes <- function(outcomes, cols_to_scale, scaled_label, scale) {
+  unknown <- setdiff(names(scale), c(cols_to_scale, ".default"))
+  if (length(unknown) > 0) {
+    warning("Ignoring scale entries for unrecognized columns: ",
+            paste(unknown, collapse = ", "))
+  }
 
-  # scale the column
-  scaled_col <- (outcome_col - min)/(max-min)
+  # Resolve which function applies to a given column
+  scale_fn_for <- function(col) {
+    if (is.null(scale)) {
+      scale01
+    } else if (is.function(scale)) {
+      scale                               # if single fn, apply to all columns
+    } else if (is.list(scale)) {
+      scale[[col]] %||% scale[[".default"]] %||% scale01
+    } else {
+      stop("`scale` must be NULL, a function, or a named list of functions.")
+    }
+  }
+
+  for (col in cols_to_scale) {
+    fn <- scale_fn_for(col)
+    outcomes[[paste0(col, scaled_label)]] <- fn(outcomes[[col]])
+  }
+
+  outcomes
+}
+
+# helper function for default scaling
+scale01 <- function(col) {
+  min <- min(col)
+  max <- max(col)
+
+  # rescale from 0 to 1
+  scaled_col <- (col - min)/(max-min)
+  # make sure the minimum and maximum are equal to 0 and 1 (to correct rounding)
   scaled_col[scaled_col < 0] <- 0
   scaled_col[scaled_col > 1] <- 1
-  outcomes[[scaled_colname]] <- scaled_col
-  return(outcomes)
+
+  scaled_col
+}
+
+# helper function for z score scaling
+scale_z <- function(col) {
+  (col - mean(col))/sd(col)
 }
 
 # flip draws by names
 flip_by_names <- function(df, vec, label) {
+  # each alternative name
   for(i in 1:length(vec)) {
+    # subset df$"label" column with rows for that alternative
     add.vec <- df[[label]][df$names == vec[i]]
+    # if first pass
     if (i == 1) {
+      # create a data frame from that vector
       result <- data.frame(add.vec)
     } else {
+      # append vector to data frame
       result <- cbind(result, add.vec)
     }
   }
+  # update colnames to reflect alternatives names
   colnames(result) <- vec
-  return(result)
+  result
 }
 
 # helper func to build costs grid
 build_cost_grid <- function(components, costs) {
+  # check for one cost value per component
   stopifnot(length(components) == length(costs))
 
+  # define two possible levels (-1 for off and 1 for on) for each component and
+  # create a full factorial grid
   levels_args <- setNames(
     lapply(components, function(x) c(-1, 1)),
     components
   )
-
-  grid_args <- setNames(
-    lapply(costs, function(c) c(0, c)),
-    paste0(components, "_cost")
-  )
-
   levels_grid <- do.call(expand.grid, levels_args)
-  costs_grid  <- do.call(expand.grid, grid_args)
 
-  levels_grid$cost <- rowSums(costs_grid)
+  # convert levels from -1/1 -> 0/1 "on/off" indicator and calculate costs
+  on_indicator <- (as.matrix(levels_grid) + 1) / 2
+  levels_grid$cost <- as.numeric(on_indicator %*% costs)
+
   levels_grid
 }

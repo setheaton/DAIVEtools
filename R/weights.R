@@ -9,7 +9,7 @@
 #' @return A vector containing the weighted sums of the specified columns for
 #' each row of data.
 #' @export
-weight_outcomes <- function(grid_object, weights) {
+update_weights <- function(grid_object, weights) {
   g <- grid_object
   data <- g$ev_table
   outs <- g$outcomes

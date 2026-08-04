@@ -14,7 +14,19 @@ ev_plot <- function(g) {
 
   draws_unscaled <- g$ev_draws[c(1:length(g$outcomes))]
 
-  Map(f=get_ev_plot, draws_unscaled, g$outcomes, MoreArgs = list(g=g, frontier=frontier))
+  # get scaled outcomes as a list
+  from <- length(g$outcomes)+1
+  to <- length(g$outcomes)*2
+  draws_scaled <- g$ev_draws[c(from:to)]
+
+  # combine draws with weights
+  draws_weighted <- Map(f=weight_draws, draws_scaled, g$settings$weights)
+  draws_combined <- Reduce("+", draws_weighted)
+
+  draws <- append(draws_scaled, list(draws_combined))
+
+  Map(f=get_ev_plot, draws, append(g$outcomes, "value_function"), MoreArgs =
+        list(g=g, frontier=frontier))
 }
 
 get_ev_plot <- function(draws, outcome, g, frontier) {
@@ -34,6 +46,11 @@ get_ev_plot <- function(draws, outcome, g, frontier) {
   post <- post + ggplot2::scale_y_discrete(labels = plot_labels,
                                            limits = rev(names))
   post
+}
+
+# helper function to combine draws
+weight_draws <- function(draws, weight) {
+  weight*draws
 }
 
 # helper for ev_plots

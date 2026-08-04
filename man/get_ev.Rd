@@ -8,26 +8,15 @@ components.}
 get_ev(g)
 }
 \arguments{
-\item{draws}{A list object with posterior draws objects for each outcomes
-outputted from tidybayes::spreadraws}
-
-\item{outs}{A vector of char values with column labels for each outcome}
-
-\item{components}{A vector of char values with labels for each component}
-
-\item{codes}{A dataframe containing effect codes for component main and
-interaction effects}
-
-\item{separator}{An optional char variable to specify how components should
-be separated in alternative labels}
+\item{g}{A daive_grid object}
 }
 \value{
-A dataframe containing expected value for each alternative on each
-outcome.
+A daive_grid object
 }
 \description{
-This function creates a summary dataframe with estimated performance from
-each alternative from  a list of posterior draws (as output from
-tidybayes::spread_draws), outcome names, component names, and effects codes.
-The summary frame can be used to calculate a frontier and create DAIVE plots.
+This function "("get expected value") updates a daive_grid object to include
+a summary dataframe with estimated performance for each alternative and a
+predicted_outcomes dataframe formatted to estimate predicted alternative
+performance. The summary frame can be used to calculate a frontier and create
+DAIVE plots.
 }
