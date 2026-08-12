@@ -1,3 +1,21 @@
+#' Creates a scatterplot of expected alternative values with a frontier of
+#' efficiency.
+#'
+#' @description
+#' This function takes a value summary data frame and generates a plotly object
+#' to visualize Decision Analysis for Intervention Value Efficiency. If no
+#' frontier is provided, the method identifies a frontier of efficiency using
+#' the outcome and cost values provided.
+#'
+#' @param g A daive_grid object.
+#'
+#' @param frontier A dataframe containing the values and costs associated with
+#' interventions on the frontier of efficiency.
+#' @param outs,weights Vectors of char values and numeric values containing the
+#' outcome labels and weights respectively, used for generating an x axis label
+#' @param static A boolean indicating whether the function should return an
+#' interactive plotly object or a static ggplot object
+#'
 #' @export
 frontier_plot <- function(g, frontier=NULL, outs=NULL, weights=NULL,
                           static=FALSE) {
@@ -6,6 +24,10 @@ frontier_plot <- function(g, frontier=NULL, outs=NULL, weights=NULL,
             weights=g$settings$weights, static=static)
 }
 
+#' Expected Value Plot
+#'
+#' @param g A daive_grid object
+#'
 #' @export
 ev_plot <- function(g) {
   df <- g$ev_table
@@ -30,22 +52,41 @@ ev_plot <- function(g) {
 }
 
 get_ev_plot <- function(draws, outcome, g, frontier) {
-  min <- min(g$ev_table[, outcome])
-  min <- g$ev_table$names[g$ev_table[, outcome] == min]
+  min_val  <- min(g$ev_table[, outcome], na.rm = TRUE)
+  min_name <- g$ev_table$names[g$ev_table[, outcome] == min_val]
 
-  names <- append(min, frontier$names)
-  #return(names)
+  if (length(min_name) > 1) {
+    warning("Multiple rows tie for the minimum '", outcome,
+            "' — using the first: ", min_name[1])
+    min_name <- min_name[1]
+  }
+
+  benchmark_in_frontier <- min_name %in% frontier$names
+
+  # avoid duplicating the row if the benchmark is already in the frontier
+  if (benchmark_in_frontier) {
+    names <- frontier$names
+  } else {
+    names <- c(min_name, frontier$names)
+  }
+
+  outcomes_frontier <- draws[, names, drop = FALSE]
 
   outcomes_frontier = draws[, which(colnames(draws) %in% names)]
   outcomes_frontier = outcomes_frontier[, names]
-  post <- bayesplot::mcmc_intervals(outcomes_frontier, point_est="mean") #+
-  #  scale_x_continuous(limits=c(0,1))
-  post <- recolor_min(post)
-  plot_labels = append("Benchmark", frontier$names)
-  plot_labels <- setNames(plot_labels, names)
+  post <- bayesplot::mcmc_intervals(outcomes_frontier, point_est="mean")
+  post <- recolor_row(post, min_name)
+
+  # only relabel as "Benchmark" if it's not already a named frontier point
+  if (benchmark_in_frontier) {
+    plot_labels <- setNames(names, names)
+  } else {
+    plot_labels <- setNames(names, names)
+    plot_labels[names == min_name] <- "Benchmark"
+  }
+
   post <- post + ggplot2::scale_y_discrete(labels = plot_labels,
                                            limits = rev(names))
-  post
 }
 
 # helper function to combine draws
@@ -53,43 +94,53 @@ weight_draws <- function(draws, weight) {
   weight*draws
 }
 
-# helper for ev_plots
-recolor_min <- function(plot) {
+# helper for ev_plot
+recolor_row <- function(plot, row) {
   b <- ggplot2::ggplot_build(plot)
 
-  highlight_outer <- "#B2182B"   # thin line color
-  highlight_inner <- "#67001F"   # thick line color
-  highlight_point <- "#F4A582"   # point color
+  # the discrete y values, in the order ggplot mapped them to integer positions 1, 2, 3...
+  y_range <- b$layout$panel_scales_y[[1]]$range$range
+  idx <- match(row, y_range)
+
+  if (is.na(idx)) {
+    stop("`row` = '", row, "' not found among plot y-axis values: ",
+         paste(y_range, collapse = ", "))
+  }
+  target_y <- (length(y_range) + 1) - idx  # this is now numeric, matching outer_df$y etc.
+
+  highlight_outer <- "#B2182B"
+  highlight_inner <- "#67001F"
+  highlight_point <- "#F4A582"
 
   outer_df <- b$data[[2]]
   inner_df <- b$data[[3]]
   point_df <- b$data[[4]]
 
-  top_y <- max(outer_df$y)
+  sel_outer <- outer_df[outer_df$y == target_y, ]
+  sel_inner <- inner_df[inner_df$y == target_y, ]
+  sel_point <- point_df[point_df$y == target_y, ]
 
-  top_outer <- outer_df[outer_df$y == top_y, ]
-  top_inner <- inner_df[inner_df$y == top_y, ]
-  top_point <- point_df[point_df$y == top_y, ]
+  if (nrow(sel_outer) == 0) {
+    stop("No geometry found at y = ", target_y, " for row '", row, "'.")
+  }
 
-  output <- plot +
+  plot +
     ggplot2::annotate("segment",
-             x = top_outer$x, xend = top_outer$xend,
-             y = top_outer$y, yend = top_outer$yend,
-             colour = highlight_outer, linewidth = top_outer$linewidth) +
+                      x = sel_outer$x, xend = sel_outer$xend,
+                      y = sel_outer$y, yend = sel_outer$yend,
+                      colour = highlight_outer, linewidth = sel_outer$linewidth) +
     ggplot2::annotate("segment",
-             x = top_inner$x, xend = top_inner$xend,
-             y = top_inner$y, yend = top_inner$yend,
-             colour = highlight_inner, linewidth = top_inner$linewidth) +
+                      x = sel_inner$x, xend = sel_inner$xend,
+                      y = sel_inner$y, yend = sel_inner$yend,
+                      colour = highlight_inner, linewidth = sel_inner$linewidth) +
     ggplot2::annotate("point",
-             x = top_point$x, y = top_point$y,
-             colour = highlight_inner,                 # this becomes the "border"
-             size = top_point$size - .5) +    # slightly bigger, sits behind
+                      x = sel_point$x, y = sel_point$y,
+                      colour = highlight_inner,
+                      size = sel_point$size - .5) +
     ggplot2::annotate("point",
-             x = top_point$x, y = top_point$y,
-             colour = highlight_point,
-             size = top_point$size - .6)
-
-  return(output)
+                      x = sel_point$x, y = sel_point$y,
+                      colour = highlight_point,
+                      size = sel_point$size - .6)
 }
 
 #' Creates a scatterplot of expected alternative values with a frontier of

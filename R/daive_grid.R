@@ -1,5 +1,15 @@
+#' DAIVE grid
+#'
+#' @param data A list of draws objects.
+#' @param outcomes A char (or vector of chars) with name(s) of the outcome(s).
+#' @param components A char (or vector of chars) with name(s) of the component(s).
+#' @param costs A numeric or ordered char of numerics of component delivery costs.
+#' @param separator A char to separate component names in alternatives labels.
+#' @param scale A function used to scale outcomes for comparison.
+#' @param weights A numeric or ordered vector of numerics for outcome weights.
+#'
+#' @returns A daive_grid object.
 #' @export
-# User-facing helper (what people actually call)
 daive_grid <- function(data, outcomes, components, costs="default", separator="",
                        scale="0-1", weights="default") {
   # validate components labels
@@ -75,25 +85,85 @@ build_draws_labels <- function(components) {
   paste0("b_", all_terms)
 }
 
-# Methods
+#' Get draws values.
+#'
+#' @param g A daive_grid object.
+#'
+#' @returns A dataframe or list of draws contained in the input.
 #' @export
-print.daive_grid <- function(x) {
-  cat("<daive_grid object>\n")
-  cat("Outcomes:", paste(x$outcomes, collapse = "; "), "\n")
-  cat("Components:", paste(x$components, collapse = ", "), "\n")
-  cat("Main and Interaction Effect Draws:  ", length(x$data), "draws objects:\n")
-  print(lapply(x$data, head))
-  cat("Outcomes Draws: \n")
-  print(head(x$predicted_outcomes))
-  cat("Expected Values Table: \n")
-  print(head(x$ev_table))
-  cat("Alternative Performance Draws: \n")
-  print(lapply(x$ev_draws, head))
-  invisible(x)   # invisible() so it doesn't double-print at the console
+get_draws <- function(g) {
+  g$data
 }
 
+#' Get expected value table.
+#'
+#' @param g A daive_grid object.
+#'
+#' @returns A dataframe with the expected values table contained in the input.
 #' @export
-summary.daive_grid <- function(object, ...) {
+get_table <- function(g) {
+  g$ev_table
+}
+
+#' Get predicted outcomes.
+#'
+#' @param g A daive_grid object.
+#'
+#' @returns A dataframe with the predicted values contained in the input.
+#' @export
+get_predicted_outcomes <- function(g) {
+  g$predicted_outcomes
+}
+
+#' Print
+#'
+#' @param g A daive_grid object.
+#'
+#' @returns Printed output with contents of the input.
+#' @export
+print.daive_grid <- function(g) {
+  cat("<daive_grid object>\n")
+  cat("Outcomes:", paste(g$outcomes, collapse = "; "), "\n")
+  cat("Components:", paste(g$components, collapse = ", "), "\n")
+  cat("Main and Interaction Effect Draws:  ", length(g$data), "draws objects:\n")
+  print(lapply(g$data, head))
+  cat("Outcomes Draws: \n")
+  print(head(g$predicted_outcomes))
+  cat("Expected Values Table: \n")
+  print(head(g$ev_table))
+  cat("Alternative Performance Draws: \n")
+  print(lapply(g$ev_draws, head))
+  invisible(g)   # invisible() so it doesn't double-print at the console
+}
+
+#' Summary
+#'
+#' @param g A daive_grid object.
+#'
+#' @returns Printed output describing expected value and the frontier.
+#' @export
+summary.daive_grid <- function(g) {
   # OTHER BIG TO-DO
-  return(NA)
+  cat("DAIVE grid object with", length(g$outcomes), "outcomes and", length(g$components), "components.\n")
+  cat("Outcomes:", paste(g$outcomes, collapse = "; "), "\n")
+  cat("Components:", paste(g$components, collapse = ", "), "\n")
+  cat("Expected Values Table: \n")
+  print(g$ev_table)
+
+  if(is.null(g$outcomes) || is.null(g$settings$weights)) {
+    vfunc <- paste("V =", g$outcomes)
+  } else {
+    vfunc <- "V = "
+    for(i in 1:length(g$outcomes)) {
+      vfunc <- paste(vfunc, round(g$settings$weights[i], digits=3), " * (",
+                     g$outcomes[i], ")", sep = "")
+      if(i < length(g$outcomes)) {
+        vfunc <- paste0(vfunc, " + ")
+      }
+    }
+  }
+
+  cat("Value Function:", vfunc, "\n\n")
+  f <- frontier(g$ev_table, "value_function", "cost")
+  cat("Alternatives on the frontier:", paste(f$names, collapse=", "))
 }

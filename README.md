@@ -37,24 +37,21 @@ draws <- list(gpaDraws, actDraws)
 components <- c("A", "B", "C")
 outcomes <- c("GPA", "ACT")
 
-## generate a frame with effects codes
-codes <- DAIVEtools::get_codes(components)
-
-## generate a value summary table
-expectedValue <- DAIVEtools::values_table(draws, outcomes, components, codes)
-expectedValue
-#>    A  B  C   names        GPA GPA.scale      ACT ACT.scale
-#> 1 -1 -1 -1 All Off -0.6798174 0.4997223 19.48335 0.4811386
-#> 2  1 -1 -1       A  0.6116712 0.6514479 20.93811 0.5412324
-#> 3 -1  1 -1       B -0.8555110 0.4790816 23.88989 0.6631660
-#> 4  1  1 -1      AB -0.1651793 0.5601826 27.24404 0.8017211
-#> 5 -1 -1  1       C -2.0651978 0.3369662 15.63841 0.3223100
-#> 6  1 -1  1      AC  2.1327076 0.8301410 14.69324 0.2832665
-#> 7 -1  1  1      BC -1.5802862 0.3939342 25.54174 0.7314017
-#> 8  1  1  1     ABC  0.1622224 0.5986461 24.08650 0.6712878
+## generate a daive_grid object that contains expected value
+g <- DAIVEtools::daive_grid(draws, outcomes, components, costs=c(70, 60, 20))
+get_table(g)
+#>    A  B  C   names        GPA      ACT GPA.scale ACT.scale cost value_function
+#> 1 -1 -1 -1 All Off -0.6798174 19.48335 0.4997223 0.4811386    0      0.4904304
+#> 2 -1 -1  1       C -2.0651978 15.63841 0.3369662 0.3223100   20      0.3296381
+#> 3 -1  1 -1       B -0.8555110 23.88989 0.4790816 0.6631660   60      0.5711238
+#> 4 -1  1  1      BC -1.5802862 25.54174 0.3939342 0.7314017   80      0.5626680
+#> 5  1 -1 -1       A  0.6116712 20.93811 0.6514479 0.5412324   70      0.5963402
+#> 6  1 -1  1      AC  2.1327076 14.69324 0.8301410 0.2832665   90      0.5567037
+#> 7  1  1 -1      AB -0.1651793 27.24404 0.5601826 0.8017211  130      0.6809518
+#> 8  1  1  1     ABC  0.1622224 24.08650 0.5986461 0.6712878  150      0.6349669
 ```
 
-Values tables can be used to easily combine outcomes with value
+Grid objects can be updated to easily combine outcomes with value
 functions and identify frontiers of efficiency:
 
 ``` r
@@ -62,39 +59,50 @@ functions and identify frontiers of efficiency:
 weights <- c(100/160, 60/160)
 
 ## calculate a value function as a weighted sum
-expectedValue$valueFunc <- DAIVEtools::weight_outcomes(expectedValue,
-                                                    c("GPA.scale", "ACT.scale"), 
-                                                    weights)
-expectedValue
-#>    A  B  C   names        GPA GPA.scale      ACT ACT.scale valueFunc
-#> 1 -1 -1 -1 All Off -0.6798174 0.4997223 19.48335 0.4811386 0.4927534
-#> 2  1 -1 -1       A  0.6116712 0.6514479 20.93811 0.5412324 0.6101171
-#> 3 -1  1 -1       B -0.8555110 0.4790816 23.88989 0.6631660 0.5481133
-#> 4  1  1 -1      AB -0.1651793 0.5601826 27.24404 0.8017211 0.6507595
-#> 5 -1 -1  1       C -2.0651978 0.3369662 15.63841 0.3223100 0.3314701
-#> 6  1 -1  1      AC  2.1327076 0.8301410 14.69324 0.2832665 0.6250631
-#> 7 -1  1  1      BC -1.5802862 0.3939342 25.54174 0.7314017 0.5204845
-#> 8  1  1  1     ABC  0.1622224 0.5986461 24.08650 0.6712878 0.6258867
-
-## calculate alternative costs using component costs
-expectedValue$cost <- rowSums(expand.grid(A=c(0, 70), B=c(0, 60), C=c(0,20)))
-
-## identify a frontier
-DAIVEtools::frontier(expectedValue, "valueFunc", "cost")
-#>     names cost valueFunc
-#> 1 All Off    0 0.4927534
-#> 2       A   70 0.6101171
-#> 6      AC   90 0.6250631
-#> 4      AB  130 0.6507595
+g <- DAIVEtools::update_weights(g, weights)
+summary(g)
+#> DAIVE grid object with 2 outcomes and 3 components.
+#> Outcomes: GPA; ACT 
+#> Components: A, B, C 
+#> Expected Values Table: 
+#>    A  B  C   names        GPA      ACT GPA.scale ACT.scale cost value_function
+#> 1 -1 -1 -1 All Off -0.6798174 19.48335 0.4997223 0.4811386    0      0.4927534
+#> 2 -1 -1  1       C -2.0651978 15.63841 0.3369662 0.3223100   20      0.3314701
+#> 3 -1  1 -1       B -0.8555110 23.88989 0.4790816 0.6631660   60      0.5481133
+#> 4 -1  1  1      BC -1.5802862 25.54174 0.3939342 0.7314017   80      0.5204845
+#> 5  1 -1 -1       A  0.6116712 20.93811 0.6514479 0.5412324   70      0.6101171
+#> 6  1 -1  1      AC  2.1327076 14.69324 0.8301410 0.2832665   90      0.6250631
+#> 7  1  1 -1      AB -0.1651793 27.24404 0.5601826 0.8017211  130      0.6507595
+#> 8  1  1  1     ABC  0.1622224 24.08650 0.5986461 0.6712878  150      0.6258867
+#> Value Function: V = 0.625 * (GPA) + 0.375 * (ACT) 
+#> 
+#> Alternatives on the frontier: All Off, A, AC, AB
 ```
 
-Values tables can also be used to easily visualize frontiers of
+Grid objects can also easily be used to visualize frontiers of
 efficiency:
 
 ``` r
-DAIVEtools::DAIVE_plot(expectedValue, "valueFunc", "cost", 
-                       outs=c("Scaled GPA", "Scaled ACT"), weights=weights, 
-                       static=TRUE)
+DAIVEtools::frontier_plot(g, static=TRUE)
 ```
 
-<img src="man/figures/README-plot-1.png" width="100%" />
+<img src="man/figures/README-frontier_plot-1.png" alt="" width="100%" />
+
+And to visualize intervals for expected values:
+
+``` r
+DAIVEtools::ev_plot(g)
+#> [[1]]
+```
+
+<img src="man/figures/README-ev_plot-1.png" alt="" width="100%" />
+
+    #> 
+    #> [[2]]
+
+<img src="man/figures/README-ev_plot-2.png" alt="" width="100%" />
+
+    #> 
+    #> [[3]]
+
+<img src="man/figures/README-ev_plot-3.png" alt="" width="100%" />
