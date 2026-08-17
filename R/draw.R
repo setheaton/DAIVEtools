@@ -45,7 +45,7 @@ ev_plot <- function(g) {
   draws_weighted <- Map(f=weight_draws, draws_scaled, g$settings$weights)
   draws_combined <- Reduce("+", draws_weighted)
 
-  draws <- append(draws_scaled, list(draws_combined))
+  draws <- append(draws_unscaled, list(draws_combined))
 
   Map(f=get_ev_plot, draws, append(g$outcomes, "value_function"), MoreArgs =
         list(g=g, frontier=frontier))
