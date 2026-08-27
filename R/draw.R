@@ -51,6 +51,7 @@ ev_plot <- function(g) {
         list(g=g, frontier=frontier))
 }
 
+# helper function to generate predicted value intervals plot
 get_ev_plot <- function(draws, outcome, g, frontier) {
   min_val  <- min(g$ev_table[, outcome], na.rm = TRUE)
   min_name <- g$ev_table$names[g$ev_table[, outcome] == min_val]
@@ -86,7 +87,8 @@ get_ev_plot <- function(draws, outcome, g, frontier) {
   }
 
   post <- post + ggplot2::scale_y_discrete(labels = plot_labels,
-                                           limits = rev(names))
+                                           limits = rev(names)) +
+   ggplot2::labs(x = outcome)
 }
 
 # helper function to combine draws
