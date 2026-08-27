@@ -44,8 +44,11 @@ draws <- list(gpaDraws, actDraws)
 components <- c("A", "B", "C")
 outcomes <- c("GPA", "ACT")
 
-## generate a daive_grid object that contains expected value
-g <- DAIVEtools::daive_grid(draws, outcomes, components, costs=c(70, 60, 20))
+## generate a daive_grid object with expected values of alternatives
+g <- DAIVEtools::daive_grid(draws, 
+                            outcomes, 
+                            components, 
+                            costs=c(70, 60, 20))
 get_table(g)
 ```
 
