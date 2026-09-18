@@ -166,6 +166,7 @@ recolor_row <- function(plot, row) {
 #' @return An interactive plotly object or static ggplot object (depending on
 #' 'static' parameter) containing a scatterplot with all alternatives, and a
 #' frontier of efficiency denoting the value efficient alternatives.
+#' @export
 make_frontier_plot <- function(data, outcome, cost, frontier=NULL, outs=NULL,
                        weights=NULL, static=FALSE) {
   df <- data.frame(matrix(nrow = nrow(data), ncol=0))

@@ -16,8 +16,6 @@
 #' @return A data frame with expected values and costs for the alternatives on
 #' the frontier of efficiency
 #' @export
-# @examples
-# frontier(value_summary, "weighted_sum", "dollar_cost")
 frontier <- function(data, val, cost, extended = TRUE) {
   # check that the val and cost are columns in data
   if(!check_colnames(data, val)) {
