@@ -11,13 +11,19 @@
 #' @returns A daive_grid object.
 #' @export
 daive_grid <- function(data, outcomes, components, costs="default", separator="",
-                       scale="0-1", weights="default") {
+                       scale="0-1", weights="default", interactions = "default") {
   # validate components labels
   components <- as.character(components)
   check_components(components)
 
+  # check for limit on k-way interactions
+  if (interactions == "default") {
+    interactions = length(components)
+  }
+
   # validate data input and clean it
-  draws_labels <- append("b_Intercept", build_draws_labels(components))
+  draws_labels <- append("b_Intercept", build_draws_labels(components,
+                                                           interactions))
   draws_labels <- append(".draw", draws_labels)
   if(inherits(data, "data.frame")) {
     data <- check_draws(data, draws_labels)
@@ -43,7 +49,8 @@ daive_grid <- function(data, outcomes, components, costs="default", separator=""
     "draws_labels" = draws_labels,
     "weights" = weights,
     "scale" = scale,
-    "alternatives" = NULL
+    "alternatives" = NULL,
+    "interactions" = interactions
   )
 
   # final checks and return the object
@@ -54,7 +61,7 @@ daive_grid <- function(data, outcomes, components, costs="default", separator=""
 # Constructor
 new_daive_grid <- function(data, outcomes, components, costs, settings) {
   # generate codes
-  codes <- get_codes(components)
+  codes <- get_codes(components, settings$interactions)
 
   structure(
     list(
@@ -73,8 +80,8 @@ new_daive_grid <- function(data, outcomes, components, costs, settings) {
 }
 
 # helper
-build_draws_labels <- function(components) {
-  n <- length(components)
+build_draws_labels <- function(components, interactions) {
+  n <- interactions
 
   # Generate all subsets of every size, from single terms to full interaction
   all_terms <- unlist(lapply(seq_len(n), function(k) {

@@ -4,7 +4,7 @@
 \alias{get_codes}
 \title{Generates effect codes for each intervention version using component labels.}
 \usage{
-get_codes(components)
+get_codes(components, k = "default")
 }
 \arguments{
 \item{components}{A vector containing a char value with the names of each
