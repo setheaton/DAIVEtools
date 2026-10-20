@@ -11,7 +11,8 @@ daive_grid(
   costs = "default",
   separator = "",
   scale = "0-1",
-  weights = "default"
+  weights = "default",
+  interactions = "default"
 )
 }
 \arguments{

@@ -2,7 +2,11 @@
 % Please edit documentation in R/codes.R
 \name{standardize_colnames}
 \alias{standardize_colnames}
-\title{Standardize column names to the "b_componentA:componentB" pattern}
+\title{Columns already following the pattern are kept as-is (component order is
+normalized to the order in `components`). Other columns whose names can be
+parsed as a combination of component labels (or an intercept) are renamed.
+Anything that can't be interpreted is treated as an "erroneous" column and
+is kept or dropped depending on `other_cols`.}
 \usage{
 standardize_colnames(
   df,
@@ -10,6 +14,7 @@ standardize_colnames(
   prefix = "b_",
   sep = ":",
   intercept = "Intercept",
+  draw_col = NULL,
   other_cols = c("keep", "drop"),
   verbose = TRUE
 )
@@ -24,6 +29,9 @@ standardize_colnames(
 \item{sep}{Separator used in the expected names (default ":").}
 
 \item{intercept}{Label for the intercept (default "Intercept").}
+
+\item{draw_col}{Optional single column name to relabel as ".draw"
+(e.g. "Iteration"). NULL (default) does no relabeling.}
 
 \item{other_cols}{"keep" (default) or "drop" columns that don't match.}
 
