@@ -8,6 +8,7 @@
 #' the k-way interaction for k components.
 #' @param components A vector containing a char value with the names of each
 #' component.
+#' @param ix The limit of n-term interactions that should be included
 #' @return A data frame with effect codes.
 #' @export
 #' @examples
@@ -79,6 +80,7 @@ multiply_columns <- function(df, col_names) {
 #' @param other_cols "keep" (default) or "drop" columns that don't match.
 #' @param verbose    Report renames / skipped columns via message().
 #' @return A data.frame with standardized names.
+#' @export
 standardize_colnames <- function(df,
                                  components,
                                  prefix = "b_",

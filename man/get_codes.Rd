@@ -9,6 +9,8 @@ get_codes(components, ix)
 \arguments{
 \item{components}{A vector containing a char value with the names of each
 component.}
+
+\item{ix}{The limit of n-term interactions that should be included}
 }
 \value{
 A data frame with effect codes.

@@ -7,6 +7,7 @@
 #' @param separator A char to separate component names in alternatives labels.
 #' @param scale A function used to scale outcomes for comparison.
 #' @param weights A numeric or ordered vector of numerics for outcome weights.
+#' @param interactions An integer n noting n-way interactions effects in data.
 #'
 #' @returns A daive_grid object.
 #' @export

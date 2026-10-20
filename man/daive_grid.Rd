@@ -29,6 +29,8 @@ daive_grid(
 \item{scale}{A function used to scale outcomes for comparison.}
 
 \item{weights}{A numeric or ordered vector of numerics for outcome weights.}
+
+\item{interactions}{An integer n noting n-way interactions effects in data.}
 }
 \value{
 A daive_grid object.
